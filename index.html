@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistant Configuration Utility</title>
+    <title>Leona/Eleny Config Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -27,18 +27,21 @@
             margin-bottom: 1.5rem;
             border-top: 4px solid transparent;
         }
-        .section-general { border-color: #3b82f6; }
-        .section-assistant { border-color: #8b5cf6; }
-        .section-comm { border-color: #10b981; }
-        .section-cal { border-color: #ec4899; }
+        .section-core { border-color: #3b82f6; }
+        .section-rag { border-color: #8b5cf6; }
+        .section-sched { border-color: #ec4899; }
+        .section-media { border-color: #f59e0b; }
+        .section-routing { border-color: #10b981; }
         .section-reminders { border-color: #06b6d4; }
+        .section-tokens { border-color: #64748b; }
         
-        input[type="text"], input[type="email"], input[type="number"], input[type="time"], textarea, select {
+        input[type="text"], input[type="email"], input[type="number"], input[type="time"], input[type="datetime-local"], textarea, select {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #e2e8f0;
             border-radius: 0.375rem;
             margin-top: 0.25rem;
+            font-size: 0.875rem;
         }
         input:focus, textarea:focus, select:focus {
             outline: none;
@@ -46,29 +49,41 @@
             ring: 2px solid #3b82f6;
         }
         label {
-            font-weight: 500;
+            font-weight: 600;
             color: #334155;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 2px;
         }
         .card-list-item {
             background-color: #f8fafc;
             border: 1px solid #e2e8f0;
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             position: relative;
         }
         .remove-btn {
             position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
+            top: 0.5rem;
+            right: 0.5rem;
             color: #ef4444;
             cursor: pointer;
-            padding: 0.5rem;
+            padding: 0.25rem;
         }
-        .remove-btn:hover { background: #fee2e2; border-radius: 50%; }
         
-        /* Toggle Switch CSS */
+        .subsection-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.25rem;
+        }
+
+        /* Custom Toggle Switch Style */
         .toggle-checkbox:checked {
             right: 0;
             border-color: #3b82f6;
@@ -76,303 +91,333 @@
         .toggle-checkbox:checked + .toggle-label {
             background-color: #3b82f6;
         }
+
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
-    <!-- Notification Toast -->
+    <!-- Toast -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform transition-transform duration-300 translate-x-full bg-slate-800 text-white px-6 py-3 rounded shadow-lg flex items-center gap-3">
         <i class="fas fa-info-circle"></i>
         <span id="toastMsg">Notification</span>
     </div>
 
     <!-- Main Container -->
-    <div class="max-w-6xl mx-auto p-6">
+    <div class="max-w-7xl mx-auto p-6">
         
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-900">Assistant Configuration</h1>
-                <p class="text-slate-500 mt-1">Generate or edit assistant JSON configuration files.</p>
+                <p class="text-slate-500 mt-1">Full Schema Generator (Asistentes, Scheduling, Media, Tokens)</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <input type="file" id="fileInput" accept=".json" class="hidden" onchange="loadConfigFile(this)">
-                <button onclick="document.getElementById('fileInput').click()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded shadow-sm flex items-center gap-2 transition">
+                <button onclick="document.getElementById('fileInput').click()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
                     <i class="fas fa-upload"></i> Load JSON
                 </button>
-                <button onclick="copyToClipboard()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded shadow-sm flex items-center gap-2 transition">
+                <button onclick="copyToClipboard()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
                     <i class="fas fa-copy"></i> Copy JSON
                 </button>
-                <button onclick="saveConfigFile()" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded shadow-sm flex items-center gap-2 transition">
-                    <i class="fas fa-download"></i> Save to File
+                <button onclick="saveConfigFile()" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
+                    <i class="fas fa-download"></i> Save File
                 </button>
             </div>
         </div>
 
         <form id="configForm" onsubmit="return false;">
             
-            <!-- SECTION 1: General Information -->
-            <div class="form-section section-general">
-                <h2 class="text-xl font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-user-md text-blue-500"></i> General Information
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 1. ASISTENTES: Core & Persona -->
+            <div class="form-section section-core">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-user-circle text-blue-500 mr-2"></i> Asistentes: Core Info</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div><label>Assistant Name</label><input type="text" id="assistantName" value="Vale"></div>
+                    <div><label>Assistant Title</label><input type="text" id="assistantNameTitle" value="la asistente"></div>
+                    <div><label>Personality</label><input type="text" id="assistantPersonality" value="amigable y formal"></div>
                     <div>
-                        <label>Business Name (Nombre)</label>
-                        <input type="text" id="nombre" placeholder="e.g. Nutrióloga Clarissa Villarreal">
+                        <label>Assistant Type</label>
+                        <select id="assistantType">
+                            <option value="doctor">Doctor (Individual)</option>
+                            <option value="clinic">Clinic (Organization)</option>
+                        </select>
                     </div>
-                    <div>
-                        <label>Email</label>
-                        <input type="email" id="email" placeholder="email@example.com">
-                    </div>
-                    <div>
-                        <label>Phone (Telefono)</label>
-                        <input type="text" id="telefono" placeholder="e.g. 662 356 7882">
-                    </div>
-                    <div>
-                        <label>Address (Direccion)</label>
-                        <input type="text" id="direccion" placeholder="Address...">
-                    </div>
-                    <div>
-                        <label>Timezone</label>
-                        <select id="timezone">
-                            <option value="America/Hermosillo">America/Hermosillo</option>
+                    <div><label>LangGraph ID</label><input type="text" id="langgraphAssistantId" class="font-mono"></div>
+                </div>
+
+                <div class="mb-6">
+                    <label>Assistant RAG (Instructions)</label>
+                    <textarea id="assistantRag" rows="3" class="font-mono text-xs"></textarea>
+                </div>
+
+                <div class="subsection-title">Doctor / Business Details</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div><label>Doctor Name</label><input type="text" id="doctorName"></div>
+                    <div><label>Doctor Title</label><input type="text" id="doctorNameTitle" value="la doctora"></div>
+                    <div><label>Doctor Email</label><input type="email" id="doctorEmail"></div>
+                    <div><label>Office Phone</label><input type="text" id="doctorOfficePhone"></div>
+                    <div><label>Address</label><input type="text" id="doctorAddress"></div>
+                    <div><label>Timezone</label>
+                        <select id="doctorTimezone">
                             <option value="America/Mexico_City">America/Mexico_City</option>
+                            <option value="America/Hermosillo">America/Hermosillo</option>
                             <option value="America/New_York">America/New_York</option>
-                            <option value="America/Los_Angeles">America/Los_Angeles</option>
                             <option value="UTC">UTC</option>
                         </select>
                     </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                        <label>Custom Specialty (Display)</label>
-                        <input type="text" id="especialidadPersonalizada" placeholder="e.g. Lic. en Nutrición">
+                        <label>Specialty Category</label>
+                        <select id="doctorSpecialty">
+                            <option value="other">Otra</option>
+                            <option value="generalSurgery">Cirugía General</option>
+                            <option value="dermatology">Dermatología</option>
+                            <option value="gynecologyObstetrics">Ginecología y Obstetricia</option>
+                            <option value="pediatrics">Pediatría</option>
+                            <option value="psychiatry">Psiquiatría</option>
+                            <option value="nutrition">Nutrición</option>
+                        </select>
                     </div>
-                    <div>
-                        <label>Doctor Title</label>
-                        <input type="text" id="doctorNameTitle" placeholder="e.g. la doctora">
-                    </div>
+                    <div><label>Custom Specialty (Display)</label><input type="text" id="customSpecialty"></div>
                 </div>
-            </div>
 
-            <!-- SECTION 2: Assistant Persona -->
-            <div class="form-section section-assistant">
-                <h2 class="text-xl font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-robot text-violet-500"></i> Assistant Persona
-                </h2>
+                <div class="subsection-title">Direct Communication Handover</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label>Assistant Name</label>
-                        <input type="text" id="assistantName" placeholder="e.g. Vale">
-                    </div>
-                    <div>
-                        <label>Assistant Title</label>
-                        <input type="text" id="assistantNameTitle" placeholder="e.g. la asistente">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                        <label>Personality</label>
-                        <input type="text" id="assistantPersonality" placeholder="e.g. amigable y formal">
-                    </div>
-                    <div class="flex items-center mt-6">
-                         <!-- Toggle -->
-                         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="proactiveAssistant" id="proactiveAssistant" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="proactiveAssistant" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                        <label for="proactiveAssistant" class="cursor-pointer font-medium ml-1">Proactive Assistant</label>
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <label>Assistant RAG (Context/Instructions)</label>
-                    <textarea id="assistant_rag" rows="4" class="font-mono text-sm" placeholder="# Markdown content for the AI..."></textarea>
+                    <div><label>Target (Who)</label><input type="text" id="directCommunication.communicationTarget"></div>
+                    <div><label>Availability (When)</label><input type="text" id="directCommunication.communicationWhen"></div>
+                    <div><label>Method (How)</label><input type="text" id="directCommunication.communicationMethod"></div>
+                    <div><label>Situations (Why)</label><input type="text" id="directCommunication.communicationSituations"></div>
                 </div>
             </div>
 
-            <!-- SECTION 3: Calendars Configuration -->
-            <div class="form-section section-cal">
-                <h2 class="text-xl font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-calendar-check text-pink-500"></i> Calendars & Appointments
-                </h2>
+            <!-- 2. ASISTENTES: RAG & Apology -->
+            <div class="form-section section-rag">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-brain text-violet-500 mr-2"></i> RAG & Apologies</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div><label>Corpus / VectorStore ID</label><input type="text" id="ragConfig.corpusId" class="font-mono"></div>
+                    <div>
+                        <label>Search Mode</label>
+                        <select id="ragConfig.mode">
+                            <option value="KNN">KNN</option>
+                            <option value="ANN">ANN</option>
+                        </select>
+                    </div>
+                    <div><label>Top K Results</label><input type="number" id="ragConfig.topK" value="3"></div>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div class="flex items-center mt-6">
-                         <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <div class="subsection-title">Apology Settings (Enable Fallbacks)</div>
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                    <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
+                        <label class="mb-0">Image</label>
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="apologySettings.imageApology" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="apologySettings.imageApology" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
+                        <label class="mb-0">Video</label>
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="apologySettings.videoApology" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="apologySettings.videoApology" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
+                        <label class="mb-0">Contact</label>
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="apologySettings.contactApology" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="apologySettings.contactApology" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
+                        <label class="mb-0">Document</label>
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="apologySettings.documentApology" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="apologySettings.documentApology" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
+                        <label class="mb-0">Location</label>
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="apologySettings.locationApology" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="apologySettings.locationApology" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
+                        <label class="mb-0">Unknown</label>
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="apologySettings.unknownApology" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="apologySettings.unknownApology" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SCHEDULING -->
+            <div class="form-section section-sched">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-calendar-alt text-pink-500 mr-2"></i> Scheduling</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 bg-slate-50 p-6 rounded">
+                    <div><label>Time Between Appts (min)</label><input type="number" id="timeBetweenAppointments" value="0"></div>
+                    <div><label>Max Days Before Booking</label><input type="number" id="maxDaysBeforeBooking" value="30"></div>
+                    <div><label>Min Appt Buffer (min)</label><input type="number" id="minAppointmentBuffer" value="60"></div>
+                    <div>
+                        <label>Preference</label>
+                        <select id="appointmentSchedulingPreference">
+                            <option value="googleCalendar">Google Calendar</option>
+                            <option value="otherCalendar">Other Calendar</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2"><label>Other Calendar Link</label><input type="text" id="otherCalendarLink"></div>
+                    
+                    <div class="flex items-center gap-3 mt-4">
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
                             <input type="checkbox" id="smartSearch" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
                             <label for="smartSearch" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                         </div>
-                        <label for="smartSearch" class="cursor-pointer font-medium ml-1">Smart Search</label>
+                        <label for="smartSearch" class="cursor-pointer mb-0">Smart Search</label>
                     </div>
-                    <div>
-                        <label>Time Between Appointments (mins)</label>
-                        <input type="number" id="timeBetweenAppointments" value="0">
+                    <div class="flex items-center gap-3 mt-4">
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="agendarCitaFields.requestEmail" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="agendarCitaFields.requestEmail" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                        <label for="agendarCitaFields.requestEmail" class="cursor-pointer mb-0">Req. Email</label>
+                    </div>
+                    <div class="flex items-center gap-3 mt-4">
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="agendarCitaFields.requestMotivoDeCita" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="agendarCitaFields.requestMotivoDeCita" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                        <label for="agendarCitaFields.requestMotivoDeCita" class="cursor-pointer mb-0">Req. Reason</label>
                     </div>
                 </div>
 
-                <!-- Appointment Types -->
-                <div class="mb-8">
+                <!-- Appt Types -->
+                <div class="mb-6">
                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-slate-600">Appointment Types</h3>
-                        <button onclick="addAppointmentType()" class="text-xs bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded font-bold">Add Type</button>
+                        <h3 class="text-sm font-bold text-slate-500 uppercase">Appointment Types</h3>
+                        <button onclick="addAppointmentType()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Type</button>
                     </div>
-                    <div id="appointmentTypesList" class="space-y-3">
-                        <!-- Dynamic -->
-                    </div>
+                    <div id="appointmentTypesList" class="space-y-2"></div>
                 </div>
 
                 <!-- Doctors -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-sm font-bold text-slate-500 uppercase">Doctors / Calendars</h3>
+                        <button onclick="addDoctor()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Doctor</button>
+                    </div>
+                    <div id="doctorsList" class="space-y-4"></div>
+                </div>
+
+                <!-- Out of Office -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-slate-600">Doctors & Schedules</h3>
-                        <button onclick="addDoctor()" class="text-xs bg-slate-200 hover:bg-slate-300 px-3 py-2 rounded font-bold">Add Doctor</button>
+                        <h3 class="text-sm font-bold text-slate-500 uppercase">Out of Office Events</h3>
+                        <button onclick="addOutOfOffice()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Event</button>
                     </div>
-                    <div id="doctorsList" class="space-y-6">
-                        <!-- Dynamic -->
-                    </div>
+                    <div id="outOfOfficeList" class="space-y-2"></div>
                 </div>
             </div>
 
-            <!-- SECTION 4: Reminders -->
-            <div class="form-section section-reminders">
-                <h2 class="text-xl font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-bell text-cyan-500"></i> Reminders (Recordatorios)
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="flex items-center">
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="recordatorios.sendReminders" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                            <label for="recordatorios.sendReminders" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                        <label for="recordatorios.sendReminders" class="cursor-pointer font-medium ml-1">Send Reminders</label>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="recordatorios.requireConfirmation" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                            <label for="recordatorios.requireConfirmation" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                        <label for="recordatorios.requireConfirmation" class="cursor-pointer font-medium ml-1">Require Confirmation</label>
-                    </div>
-                    <div>
-                        <label>Number of Reminders</label>
-                        <input type="number" id="recordatorios.number_of_reminders" value="1" min="0" max="2">
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 5: Communication Settings -->
-            <div class="form-section section-comm">
-                <h2 class="text-xl font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-comment-alt text-emerald-500"></i> Communication Handover
-                </h2>
+            <!-- 4. MEDIA -->
+            <div class="form-section section-media">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-photo-video text-amber-500 mr-2"></i> Media</h2>
                 
-                <div class="mb-6 border-b pb-4">
-                    <h3 class="font-bold text-slate-600 mb-2">Scheduling Settings</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label>Preference</label>
-                            <select id="appointmentSchedulingPreference">
-                                <option value="googleCalendar">Google Calendar</option>
-                                <option value="manual">Manual</option>
-                            </select>
+                <div class="flex gap-8 mb-6 items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="enableMediaSending" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="enableMediaSending" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                         </div>
-                        <div class="flex items-center mt-6">
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" id="agendarCitaFields.requestEmail" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                <label for="agendarCitaFields.requestEmail" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-                            <label for="agendarCitaFields.requestEmail" class="cursor-pointer font-medium ml-1">Request Email</label>
-                        </div>
-                        <div class="flex items-center mt-6">
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" id="agendarCitaFields.requestMotivoDeCita" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                <label for="agendarCitaFields.requestMotivoDeCita" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-                            <label for="agendarCitaFields.requestMotivoDeCita" class="cursor-pointer font-medium ml-1">Request Reason</label>
-                        </div>
+                        <label for="enableMediaSending" class="cursor-pointer mb-0">Enable Sending</label>
                     </div>
+                    <div><label>Asset Limit</label><input type="number" id="assetLimit" value="5" class="w-20"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label>Target (Who)</label>
-                        <input type="text" id="directCommunication.communicationTarget" placeholder="e.g. El doctor">
-                    </div>
-                    <div>
-                        <label>Availability (When)</label>
-                        <input type="text" id="directCommunication.communicationWhen" placeholder="e.g. De 10:00 am a 20:00 hr">
-                    </div>
-                    <div>
-                        <label>Method (Response)</label>
-                        <input type="text" id="directCommunication.communicationMethod" placeholder="e.g. Llamando al 9515691245">
-                    </div>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase">Media Assets</h3>
+                    <button onclick="addMediaAsset()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Asset</button>
                 </div>
-                <div class="mt-4">
-                    <label>Situations (When to switch to human)</label>
-                    <textarea id="directCommunication.communicationSituations" rows="4" placeholder="e.g. Cuando un usuario indique que es representante médico o de laboratorio..."></textarea>
+                <div id="mediaAssetsList" class="space-y-2"></div>
+            </div>
+
+            <!-- 5. ROUTING -->
+            <div class="form-section section-routing">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-random text-emerald-500 mr-2"></i> Team Routing</h2>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase">Team Transfer Rules</h3>
+                    <button onclick="addRoutingRule()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Rule</button>
+                </div>
+                <div id="routingList" class="space-y-2"></div>
+            </div>
+
+            <!-- 6. REMINDERS -->
+            <div class="form-section section-reminders">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-bell text-cyan-500 mr-2"></i> Reminders</h2>
+                
+                <div class="flex gap-8 mb-6 items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="sendReminders" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="sendReminders" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                        <label for="sendReminders" class="cursor-pointer mb-0">Send</label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="requireConfirmation" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="requireConfirmation" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                        <label for="requireConfirmation" class="cursor-pointer mb-0">Req. Confirmation</label>
+                    </div>
+                    <div><label>Count</label><input type="number" id="numberOfReminders" value="1" class="w-20"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-3 border rounded bg-slate-50">
+                        <div class="text-xs font-bold uppercase mb-2 text-cyan-700">Reminder 1</div>
+                        <div><label>Timing (Days before)</label><input type="number" id="reminder1.timing" value="1"></div>
+                        <div><label>Template Name</label><input type="text" id="reminder1.templateName" value="base_reminder_1"></div>
+                    </div>
+                    <div class="p-3 border rounded bg-slate-50">
+                        <div class="text-xs font-bold uppercase mb-2 text-cyan-700">Reminder 2</div>
+                        <div><label>Timing (Days before)</label><input type="number" id="reminder2.timing" value="0"></div>
+                        <div><label>Template Name</label><input type="text" id="reminder2.templateName" value="base_reminder_2"></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECTION 6: Apology Settings -->
+            <!-- 7. TEMPLATES -->
             <div class="form-section">
-                <h2 class="text-xl font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-exclamation-triangle text-red-500"></i> Apology / Fallback
-                </h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    
-                    <!-- Apology Item Template -->
-                    <div class="bg-slate-100 p-3 rounded text-center flex flex-col items-center justify-center">
-                        <label class="block mb-2 font-medium">Unknown</label>
-                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="apologySettings.unknown" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="apologySettings.unknown" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-file-alt text-slate-500 mr-2"></i> Templates</h2>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase">Template List</h3>
+                    <button onclick="addTemplate()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Template</button>
+                </div>
+                <div id="templatesList" class="space-y-2"></div>
+            </div>
 
-                    <div class="bg-slate-100 p-3 rounded text-center flex flex-col items-center justify-center">
-                        <label class="block mb-2 font-medium">Contact</label>
-                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="apologySettings.contact" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="apologySettings.contact" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
+            <!-- 8. TOKENS -->
+            <div class="form-section section-tokens">
+                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-key text-slate-500 mr-2"></i> Tokens & APIs</h2>
+                
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-2">Google Calendar</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div><label>Access Token</label><input type="text" id="tokens.gc.accessToken" class="font-mono text-xs"></div>
+                        <div><label>Refresh Token</label><input type="text" id="tokens.gc.refreshToken" class="font-mono text-xs"></div>
+                        <div><label>Expires</label><input type="text" id="tokens.gc.expiresDatetime" class="font-mono text-xs"></div>
                     </div>
+                </div>
 
-                    <div class="bg-slate-100 p-3 rounded text-center flex flex-col items-center justify-center">
-                        <label class="block mb-2 font-medium">Document</label>
-                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="apologySettings.document" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="apologySettings.document" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-2">WhatsApp Cloud API</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div><label>Phone Number ID</label><input type="text" id="tokens.wa.phoneNumberId" class="font-mono text-xs"></div>
+                        <div><label>WABA ID</label><input type="text" id="tokens.wa.wabaId" class="font-mono text-xs"></div>
+                        <div class="md:col-span-2"><label>Token</label><input type="text" id="tokens.wa.token" class="font-mono text-xs"></div>
                     </div>
-
-                    <div class="bg-slate-100 p-3 rounded text-center flex flex-col items-center justify-center">
-                        <label class="block mb-2 font-medium">Image</label>
-                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="apologySettings.image" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="apologySettings.image" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-100 p-3 rounded text-center flex flex-col items-center justify-center">
-                        <label class="block mb-2 font-medium">Location</label>
-                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="apologySettings.location" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="apologySettings.location" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-100 p-3 rounded text-center flex flex-col items-center justify-center">
-                        <label class="block mb-2 font-medium">Video</label>
-                        <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="apologySettings.video" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="apologySettings.video" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
@@ -382,251 +427,351 @@
     <script>
         const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = message;
-            toast.className = `fixed top-5 right-5 z-50 transform transition-transform duration-300 px-6 py-3 rounded shadow-lg flex items-center gap-3 ${isError ? 'bg-red-600' : 'bg-slate-800'} text-white`;
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+        // --- HELPERS ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.remove('translate-x-full');
+            setTimeout(() => t.classList.add('translate-x-full'), 3000);
         }
 
-        // --- APPOINTMENT TYPES LOGIC ---
+        // --- LIST BUILDERS ---
+
         function addAppointmentType(data = null) {
             const list = document.getElementById('appointmentTypesList');
-            const id = Date.now();
+            const id = data ? data.key : `type_${Date.now()}`;
             const div = document.createElement('div');
-            div.className = "card-list-item appt-type-card";
-            div.id = `appt-type-${id}`;
-            
-            // Default values
-            const key = data ? data.key : `type_${Math.floor(Math.random()*1000)}`;
-            const desc = data ? data.description : '';
-            const dur = data ? data.duration : 30;
-            const instr = data ? data.additionalInstructions : '';
-
+            div.className = 'card-list-item appt-type-card';
             div.innerHTML = `
                 <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="md:col-span-1">
-                         <label class="text-xs font-bold block mb-1">Internal Key</label>
-                        <input type="text" class="font-bold text-sm bg-blue-50 text-blue-800 border-none p-2 rounded w-full appt-key" value="${key}" placeholder="e.g. consulta_general">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="text-xs font-bold block mb-1">Duration (min)</label>
-                        <input type="number" class="appt-dur text-sm w-full" value="${dur}">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="text-xs font-bold block mb-1">Description</label>
-                        <input type="text" class="appt-desc text-sm w-full" value="${desc}" placeholder="Description">
-                    </div>
-                    <div class="md:col-span-4">
-                        <label class="text-xs font-bold block mb-1">Additional Instructions</label>
-                        <input type="text" class="appt-instr text-sm w-full" value="${instr}" placeholder="Additional Instructions">
-                    </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="col-span-1"><label>ID</label><input type="text" class="appt-key font-mono" value="${id}"></div>
+                    <div class="col-span-2"><label>Description</label><input type="text" class="appt-desc" value="${data?.description||''}"></div>
+                    <div class="col-span-1"><label>Duration</label><input type="number" class="appt-dur" value="${data?.duration||30}"></div>
+                    <div class="col-span-4"><label>Instructions</label><input type="text" class="appt-instr" value="${data?.additionalInstructions||''}"></div>
                 </div>
             `;
             list.appendChild(div);
         }
 
-        // --- DOCTORS LOGIC ---
         function addDoctor(data = null) {
             const list = document.getElementById('doctorsList');
-            const uid = Date.now();
-            const div = document.createElement('div');
-            div.className = "card-list-item doctor-card";
+            const id = data ? data.key : `doc_${Date.now()}`;
             
-            const key = data ? data.key : `dr_${Math.floor(Math.random()*1000)}`;
-            const name = data ? data.name : '';
-            const calId = data ? data.selected_calendar_id : '';
-            
-            // Get available Appointment Types for Checkboxes (styled as toggle-ish cards or just nice checkboxes)
+            // Generate checkboxes for appt types
             const typeCards = document.querySelectorAll('.appt-type-card');
-            let checkboxesHtml = '<div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3">';
-            typeCards.forEach(card => {
-                const typeKey = card.querySelector('.appt-key').value;
-                const isChecked = (data && data.appointmentTypes && data.appointmentTypes.includes(typeKey)) ? 'checked' : '';
-                checkboxesHtml += `
+            let checks = '<div class="flex flex-wrap gap-2 mt-1">';
+            typeCards.forEach(c => {
+                const k = c.querySelector('.appt-key').value;
+                const chk = (data?.appointmentTypes?.includes(k)) ? 'checked' : '';
+                const uniqueId = `doc_type_${id}_${k.replace(/\W/g,'')}`;
+                // Use mini-toggle structure from earlier version logic
+                 checks += `
                     <label class="flex items-center space-x-2 cursor-pointer bg-slate-100 p-2 rounded hover:bg-slate-200 transition">
                         <div class="relative inline-block w-8 align-middle select-none">
-                            <input type="checkbox" value="${typeKey}" class="doc-appt-type toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 appearance-none cursor-pointer top-0" ${isChecked} style="height:1rem; width:1rem;"/>
+                            <input type="checkbox" value="${k}" class="doc-types toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 appearance-none cursor-pointer top-0" ${chk} style="height:1rem; width:1rem;"/>
                             <div class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer" style="height:1rem;"></div>
                         </div>
-                        <span class="truncate text-sm font-medium">${typeKey}</span>
+                        <span class="truncate text-sm font-medium">${k}</span>
                     </label>
                 `;
             });
-            checkboxesHtml += '</div>';
+            checks += '</div>';
 
-            // Schedule Grid - FULL WIDTH GRID
-            let scheduleHtml = '<div class="mt-6 border-t pt-4"><h4 class="font-bold text-slate-600 mb-4">Weekly Schedule</h4>';
-            scheduleHtml += '<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">';
-            
+            // Schedule Grid
+            let grid = '<div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-2 border-t pt-2">';
             DAYS.forEach(day => {
-                let slotsHtml = '';
-                let daySlots = [{start:'', end:''}, {start:'', end:''}, {start:'', end:''}]; 
-                if(data && data.horarios && data.horarios[day]) {
-                    daySlots = data.horarios[day];
-                    while(daySlots.length < 3) daySlots.push({start:'', end:''});
-                }
-
-                slotsHtml = daySlots.map((slot, idx) => `
-                    <div class="flex items-center gap-1 mb-1">
-                        <span class="text-xs text-slate-400 w-4">${idx+1}</span>
-                        <input type="time" class="text-xs p-1 border rounded doc-sch-start flex-1" data-day="${day}" data-idx="${idx}" value="${slot.start || ''}">
-                        <span class="text-xs text-slate-400">-</span>
-                        <input type="time" class="text-xs p-1 border rounded doc-sch-end flex-1" data-day="${day}" data-idx="${idx}" value="${slot.end || ''}">
+                let slots = data?.schedule?.[day] || [{},{},{}];
+                while(slots.length < 3) slots.push({});
+                const inputs = slots.map((s,i) => `
+                    <div class="flex gap-1">
+                        <input type="time" class="doc-start p-0 text-xs w-16" data-day="${day}" data-idx="${i}" value="${s.start||''}">
+                        <input type="time" class="doc-end p-0 text-xs w-16" data-day="${day}" data-idx="${i}" value="${s.end||''}">
                     </div>
                 `).join('');
-
-                scheduleHtml += `
-                    <div class="bg-white border border-slate-100 rounded p-3 shadow-sm">
-                        <div class="text-xs font-bold uppercase text-slate-500 mb-2 border-b pb-1">${day}</div>
-                        <div class="space-y-1">${slotsHtml}</div>
+                grid += `
+                    <div class="bg-white p-2 border rounded">
+                        <div class="text-xs font-bold uppercase mb-1 text-slate-400">${day}</div>
+                        <div class="flex flex-col gap-1">${inputs}</div>
                     </div>
                 `;
             });
-            scheduleHtml += '</div></div>';
+            grid += '</div>';
 
+            const div = document.createElement('div');
+            div.className = 'card-list-item doctor-card';
             div.innerHTML = `
                 <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="text-xs font-bold block mb-1">Internal Key</label>
-                        <input type="text" class="font-mono text-sm bg-orange-50 text-orange-800 doc-key w-full" value="${key}">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold block mb-1">Display Name</label>
-                        <input type="text" class="doc-name w-full text-sm" value="${name}" placeholder="Dr. Name">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold block mb-1">Google Calendar ID</label>
-                        <input type="text" class="text-xs font-mono doc-cal-id w-full" value="${calId}">
-                    </div>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div><label>Doctor ID</label><input type="text" class="doc-key font-mono" value="${id}"></div>
+                    <div><label>Calendar ID</label><input type="text" class="doc-cal" value="${data?.selectedCalendarId||''}"></div>
+                    <div class="col-span-2"><label>Appt Types</label>${checks}</div>
                 </div>
-                <div class="mb-2">
-                    <label class="text-xs font-bold block mb-1">Allowed Appointment Types</label>
-                    ${checkboxesHtml}
-                </div>
-                ${scheduleHtml}
+                <label>Weekly Schedule (Start - End)</label>
+                ${grid}
             `;
             list.appendChild(div);
         }
 
+        function addOutOfOffice(data = null) {
+            const list = document.getElementById('outOfOfficeList');
+            const div = document.createElement('div');
+            div.className = 'card-list-item ooo-card flex gap-2 items-end';
+            div.innerHTML = `
+                <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                <div class="flex-1"><label>Event Name</label><input type="text" class="ooo-name" value="${data?.oooEventName||''}"></div>
+                <div class="w-32"><label>Doctor ID</label><input type="text" class="ooo-doc" value="${data?.doctorId||''}"></div>
+                <div class="w-36"><label>Start</label><input type="datetime-local" class="ooo-start" value="${data?.oooEventStart||''}"></div>
+                <div class="w-36"><label>End</label><input type="datetime-local" class="ooo-end" value="${data?.oooEventEnd||''}"></div>
+                <input type="hidden" class="ooo-id" value="${data?.oooEventId || 'evt_'+Date.now()}">
+            `;
+            list.appendChild(div);
+        }
 
-        // --- MAIN FUNCTIONS ---
+        function addMediaAsset(data = null) {
+            const list = document.getElementById('mediaAssetsList');
+            const id = data ? data.key : `media_${Date.now()}`;
+            const div = document.createElement('div');
+            div.className = 'card-list-item media-card';
+            div.innerHTML = `
+                <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="col-span-1"><label>ID</label><input type="text" class="media-key font-mono" value="${id}"></div>
+                    <div class="col-span-3"><label>Title</label><input type="text" class="media-title" value="${data?.title||''}"></div>
+                    <div class="col-span-4"><label>Description</label><input type="text" class="media-desc" value="${data?.description||''}"></div>
+                    <div class="col-span-4"><label>Caption</label><input type="text" class="media-cap" value="${data?.caption||''}"></div>
+                    <div class="col-span-2"><label>Kind</label>
+                        <select class="media-kind">
+                            <option value="images" ${data?.kind==='images'?'selected':''}>Images</option>
+                            <option value="documents" ${data?.kind==='documents'?'selected':''}>Documents</option>
+                            <option value="videos" ${data?.kind==='videos'?'selected':''}>Videos</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2"><label>Content Type</label>
+                        <select class="media-type">
+                            <option value="application/pdf" ${data?.contentType==='application/pdf'?'selected':''}>PDF</option>
+                            <option value="image/jpeg" ${data?.contentType==='image/jpeg'?'selected':''}>JPEG</option>
+                            <option value="image/png" ${data?.contentType==='image/png'?'selected':''}>PNG</option>
+                            <option value="video/mp4" ${data?.contentType==='video/mp4'?'selected':''}>MP4</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+        }
+
+        function addRoutingRule(data = null) {
+            const list = document.getElementById('routingList');
+            const id = data ? data.key : `member_${Date.now()}`;
+            const div = document.createElement('div');
+            div.className = 'card-list-item routing-card';
+            div.innerHTML = `
+                <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                <div class="grid grid-cols-1 gap-2">
+                    <div><label>Team Member ID</label><input type="text" class="route-key font-mono" value="${id}"></div>
+                    <div><label>Situation (Trigger)</label><input type="text" class="route-sit" value="${data?.situation||''}"></div>
+                    <div><label>Data to Gather</label><input type="text" class="route-data" value="${data?.dataToGather||''}"></div>
+                </div>
+            `;
+            list.appendChild(div);
+        }
+
+        function addTemplate(data = null) {
+            const list = document.getElementById('templatesList');
+            const id = data ? data.key : `tpl_${Date.now()}`;
+            const div = document.createElement('div');
+            div.className = 'card-list-item tpl-card flex gap-2 items-end';
+            div.innerHTML = `
+                <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
+                <div class="flex-1"><label>Internal ID</label><input type="text" class="tpl-key font-mono" value="${id}"></div>
+                <div class="flex-1"><label>WA Template ID</label><input type="text" class="tpl-wa-id" value="${data?.templateId||''}"></div>
+                <div class="w-32"><label>Lang</label><input type="text" class="tpl-lang" value="${data?.languageCode||'es_MX'}"></div>
+                <div class="w-32"><label>Status</label>
+                    <select class="tpl-status">
+                        <option value="APPROVED" ${data?.status==='APPROVED'?'selected':''}>APPROVED</option>
+                        <option value="PENDING" ${data?.status==='PENDING'?'selected':''}>PENDING</option>
+                    </select>
+                </div>
+            `;
+            list.appendChild(div);
+        }
+
+        // --- CORE FUNCTIONS ---
 
         function getFormData() {
-            const val = (id) => document.getElementById(id).value;
-            const bool = (id) => document.getElementById(id).checked;
+            const val = (id) => document.getElementById(id)?.value || '';
+            const bool = (id) => document.getElementById(id)?.checked || false;
 
-            // 1. Calendars
+            // Maps Builders
             const appointmentTypes = {};
-            document.querySelectorAll('.appt-type-card').forEach(card => {
-                const key = card.querySelector('.appt-key').value;
-                if(key) {
-                    appointmentTypes[key] = {
-                        description: card.querySelector('.appt-desc').value,
-                        duration: parseInt(card.querySelector('.appt-dur').value) || 30,
-                        additionalInstructions: card.querySelector('.appt-instr').value
-                    };
-                }
+            document.querySelectorAll('.appt-type-card').forEach(c => {
+                appointmentTypes[c.querySelector('.appt-key').value] = {
+                    description: c.querySelector('.appt-desc').value,
+                    duration: parseInt(c.querySelector('.appt-dur').value) || 30,
+                    additionalInstructions: c.querySelector('.appt-instr').value
+                };
             });
 
             const doctors = {};
-            document.querySelectorAll('.doctor-card').forEach(card => {
-                const key = card.querySelector('.doc-key').value;
-                if(key) {
-                    const types = [];
-                    card.querySelectorAll('.doc-appt-type:checked').forEach(cb => types.push(cb.value));
-                    
-                    const horarios = {};
-                    DAYS.forEach(day => {
-                        const daySlots = [];
-                        const starts = card.querySelectorAll(`.doc-sch-start[data-day="${day}"]`);
-                        const ends = card.querySelectorAll(`.doc-sch-end[data-day="${day}"]`);
-                        starts.forEach((s, i) => {
-                            daySlots.push({
-                                start: s.value,
-                                end: ends[i].value
-                            });
-                        });
-                        horarios[day] = daySlots;
-                    });
-
-                    doctors[key] = {
-                        name: card.querySelector('.doc-name').value,
-                        selected_calendar_id: card.querySelector('.doc-cal-id').value,
-                        appointmentTypes: types,
-                        horarios: horarios
-                    };
-                }
+            document.querySelectorAll('.doctor-card').forEach(c => {
+                const schedule = {};
+                DAYS.forEach(day => {
+                    const starts = c.querySelectorAll(`.doc-start[data-day="${day}"]`);
+                    const ends = c.querySelectorAll(`.doc-end[data-day="${day}"]`);
+                    schedule[day] = Array.from(starts).map((s,i) => ({ start: s.value, end: ends[i].value }));
+                });
+                const types = Array.from(c.querySelectorAll('.doc-types:checked')).map(cb => cb.value);
+                
+                doctors[c.querySelector('.doc-key').value] = {
+                    selectedCalendarId: c.querySelector('.doc-cal').value,
+                    appointmentTypes: types,
+                    schedule: schedule
+                };
             });
 
-            const calendars = {
-                smartSearch: bool('smartSearch'),
-                timeBetweenAppointments: parseInt(val('timeBetweenAppointments')) || 0,
-                appointment_types: appointmentTypes,
-                doctors: doctors,
-                outOfOffice: [], 
-                lastUpdated: new Date().toLocaleString()
-            };
+            const mediaAssets = {};
+            document.querySelectorAll('.media-card').forEach(c => {
+                mediaAssets[c.querySelector('.media-key').value] = {
+                    title: c.querySelector('.media-title').value,
+                    description: c.querySelector('.media-desc').value,
+                    caption: c.querySelector('.media-cap').value,
+                    kind: c.querySelector('.media-kind').value,
+                    contentType: c.querySelector('.media-type').value
+                };
+            });
 
-            // 2. Reminders
-            const recordatorios = {
-                sendReminders: bool('recordatorios.sendReminders'),
-                requireConfirmation: bool('recordatorios.requireConfirmation'),
-                number_of_reminders: parseInt(val('recordatorios.number_of_reminders')) || 1
-            };
+            const teamTransferRules = {};
+            document.querySelectorAll('.routing-card').forEach(c => {
+                teamTransferRules[c.querySelector('.route-key').value] = {
+                    situation: c.querySelector('.route-sit').value,
+                    dataToGather: c.querySelector('.route-data').value
+                };
+            });
+            
+            const templates = {};
+            document.querySelectorAll('.tpl-card').forEach(c => {
+                templates[c.querySelector('.tpl-key').value] = {
+                    templateId: c.querySelector('.tpl-wa-id').value,
+                    languageCode: c.querySelector('.tpl-lang').value,
+                    status: c.querySelector('.tpl-status').value
+                };
+            });
 
-            // 3. Construct Full Object (Fixed Fields included implicitly)
+            const outOfOffice = [];
+            document.querySelectorAll('.ooo-card').forEach(c => {
+                outOfOffice.push({
+                    oooEventId: c.querySelector('.ooo-id').value,
+                    oooEventName: c.querySelector('.ooo-name').value,
+                    doctorId: c.querySelector('.ooo-doc').value,
+                    oooEventStart: c.querySelector('.ooo-start').value,
+                    oooEventEnd: c.querySelector('.ooo-end').value
+                });
+            });
+
+            // Available Calendars (Tokens) - Simple passthrough from existing JSON usually, here placeholder
+            const availableCalendars = []; 
+
             return {
-                nombre: val('nombre'),
-                email: val('email'),
-                telefono: val('telefono'),
-                direccion: val('direccion'),
-                timezone: val('timezone'),
-                
-                // HIDDEN / FIXED FIELDS
-                especialidad: "other", 
-                assistantType: "doctor",
-                
-                especialidadPersonalizada: val('especialidadPersonalizada'),
-                doctorNameTitle: val('doctorNameTitle'),
-                lastUpdated: new Date().toLocaleString('en-US', { timeZoneName: 'short' }),
-                
+                // ASISTENTES COLLECTION
                 assistantName: val('assistantName'),
                 assistantNameTitle: val('assistantNameTitle'),
                 assistantPersonality: val('assistantPersonality'),
-                proactiveAssistant: bool('proactiveAssistant'),
-                assistant_rag: val('assistant_rag'),
-
-                agendarCitaFields: {
-                    requestEmail: bool('agendarCitaFields.requestEmail'),
-                    requestMotivoDeCita: bool('agendarCitaFields.requestMotivoDeCita')
-                },
+                assistantType: val('assistantType'),
+                langgraphAssistantId: val('langgraphAssistantId'),
+                assistantRag: val('assistantRag'),
+                doctorName: val('doctorName'),
+                doctorNameTitle: val('doctorNameTitle'),
+                doctorEmail: val('doctorEmail'),
+                doctorOfficePhone: val('doctorOfficePhone'),
+                doctorAddress: val('doctorAddress'),
+                doctorTimezone: val('doctorTimezone'),
+                doctorSpecialty: val('doctorSpecialty'),
+                customSpecialty: val('customSpecialty'),
+                
                 directCommunication: {
                     communicationTarget: val('directCommunication.communicationTarget'),
                     communicationWhen: val('directCommunication.communicationWhen'),
                     communicationMethod: val('directCommunication.communicationMethod'),
                     communicationSituations: val('directCommunication.communicationSituations')
                 },
+
                 apologySettings: {
-                    contact: bool('apologySettings.contact'),
-                    document: bool('apologySettings.document'),
-                    image: bool('apologySettings.image'),
-                    location: bool('apologySettings.location'),
-                    unknown: bool('apologySettings.unknown'),
-                    video: bool('apologySettings.video')
+                    imageApology: bool('apologySettings.imageApology'),
+                    videoApology: bool('apologySettings.videoApology'),
+                    contactApology: bool('apologySettings.contactApology'),
+                    documentApology: bool('apologySettings.documentApology'),
+                    locationApology: bool('apologySettings.locationApology'),
+                    unknownApology: bool('apologySettings.unknownApology')
                 },
-                
-                // Removed section from UI, but kept empty struct for schema safety
-                assistant_availability: {
-                    ignored_numbers: {},
-                    offline_schedule: {}
+
+                ragConfig: {
+                    corpusId: val('ragConfig.corpusId'), // or vectorStoreId logic
+                    vectorStoreId: val('ragConfig.corpusId'),
+                    mode: val('ragConfig.mode'),
+                    topK: parseInt(val('ragConfig.topK')) || 3
                 },
-                calendars: calendars,
-                appointmentSchedulingPreference: val('appointmentSchedulingPreference'),
-                recordatorios: recordatorios
+
+                // SCHEDULING
+                scheduling: {
+                    appointmentTypes,
+                    doctors,
+                    smartSearch: bool('smartSearch'),
+                    timeBetweenAppointments: parseInt(val('timeBetweenAppointments')) || 0,
+                    maxDaysBeforeBooking: parseInt(val('maxDaysBeforeBooking')) || 30,
+                    minAppointmentBuffer: parseInt(val('minAppointmentBuffer')) || 60,
+                    appointmentSchedulingPreference: val('appointmentSchedulingPreference'),
+                    otherCalendarLink: val('otherCalendarLink'),
+                    agendarCitaFields: {
+                        requestEmail: bool('agendarCitaFields.requestEmail'),
+                        requestMotivoDeCita: bool('agendarCitaFields.requestMotivoDeCita')
+                    },
+                    outOfOffice
+                },
+
+                // MEDIA
+                media: {
+                    enableMediaSending: bool('enableMediaSending'),
+                    assetLimit: parseInt(val('assetLimit')) || 5,
+                    mediaAssets
+                },
+
+                // CUSTOM NOTIFICATIONS (Routing)
+                customNotifications: {
+                    teamTransferRules
+                },
+
+                // REMINDERS
+                reminders: {
+                    sendReminders: bool('sendReminders'),
+                    requireConfirmation: bool('requireConfirmation'),
+                    numberOfReminders: parseInt(val('numberOfReminders')) || 1,
+                    reminder1: {
+                        timing: parseInt(val('reminder1.timing')) || 0,
+                        templateName: val('reminder1.templateName')
+                    },
+                    reminder2: {
+                        timing: parseInt(val('reminder2.timing')) || 0,
+                        templateName: val('reminder2.templateName')
+                    }
+                },
+
+                // TEMPLATES
+                templates,
+
+                // TOKENS
+                tokens: {
+                    googleCalendar: {
+                        accessToken: val('tokens.gc.accessToken'),
+                        refreshToken: val('tokens.gc.refreshToken'),
+                        expiresDatetime: val('tokens.gc.expiresDatetime'),
+                        availableCalendars 
+                    },
+                    whatsappCloudApi: {
+                        phoneNumberId: val('tokens.wa.phoneNumberId'),
+                        wabaId: val('tokens.wa.wabaId'),
+                        token: val('tokens.wa.token')
+                    }
+                }
             };
         }
 
@@ -634,116 +779,117 @@
             const setVal = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
             const setBool = (id, v) => { if(document.getElementById(id)) document.getElementById(id).checked = !!v; };
 
-            setVal('nombre', data.nombre);
-            setVal('email', data.email);
-            setVal('telefono', data.telefono);
-            setVal('direccion', data.direccion);
-            setVal('timezone', data.timezone);
-            // Especialidad is hidden/fixed
-            setVal('especialidadPersonalizada', data.especialidadPersonalizada);
-            setVal('doctorNameTitle', data.doctorNameTitle);
-            
+            // ASISTENTES
             setVal('assistantName', data.assistantName);
             setVal('assistantNameTitle', data.assistantNameTitle);
-            // AssistantType is hidden/fixed
             setVal('assistantPersonality', data.assistantPersonality);
-            setBool('proactiveAssistant', data.proactiveAssistant);
-            setVal('assistant_rag', data.assistant_rag);
-            setVal('appointmentSchedulingPreference', data.appointmentSchedulingPreference);
+            setVal('assistantType', data.assistantType);
+            setVal('langgraphAssistantId', data.langgraphAssistantId);
+            setVal('assistantRag', data.assistantRag);
+            setVal('doctorName', data.doctorName);
+            setVal('doctorNameTitle', data.doctorNameTitle);
+            setVal('doctorEmail', data.doctorEmail);
+            setVal('doctorOfficePhone', data.doctorOfficePhone);
+            setVal('doctorAddress', data.doctorAddress);
+            setVal('doctorTimezone', data.doctorTimezone);
+            setVal('doctorSpecialty', data.doctorSpecialty);
+            setVal('customSpecialty', data.customSpecialty);
 
-            if (data.agendarCitaFields) {
-                setBool('agendarCitaFields.requestEmail', data.agendarCitaFields.requestEmail);
-                setBool('agendarCitaFields.requestMotivoDeCita', data.agendarCitaFields.requestMotivoDeCita);
-            }
-            if (data.directCommunication) {
+            if(data.directCommunication) {
                 setVal('directCommunication.communicationTarget', data.directCommunication.communicationTarget);
                 setVal('directCommunication.communicationWhen', data.directCommunication.communicationWhen);
                 setVal('directCommunication.communicationMethod', data.directCommunication.communicationMethod);
                 setVal('directCommunication.communicationSituations', data.directCommunication.communicationSituations);
             }
-            if (data.apologySettings) {
-                Object.keys(data.apologySettings).forEach(k => {
-                    setBool(`apologySettings.${k}`, data.apologySettings[k]);
-                });
+            if(data.apologySettings) {
+                Object.keys(data.apologySettings).forEach(k => setBool(`apologySettings.${k}`, data.apologySettings[k]));
             }
-            
-            // Availability section removed from UI - no population needed
+            if(data.ragConfig) {
+                setVal('ragConfig.corpusId', data.ragConfig.corpusId || data.ragConfig.vectorStoreId);
+                setVal('ragConfig.mode', data.ragConfig.mode);
+                setVal('ragConfig.topK', data.ragConfig.topK);
+            }
 
-            // Calendars
+            // SCHEDULING
+            const sched = data.scheduling || {};
+            setVal('timeBetweenAppointments', sched.timeBetweenAppointments);
+            setVal('maxDaysBeforeBooking', sched.maxDaysBeforeBooking);
+            setVal('minAppointmentBuffer', sched.minAppointmentBuffer);
+            setVal('appointmentSchedulingPreference', sched.appointmentSchedulingPreference);
+            setVal('otherCalendarLink', sched.otherCalendarLink);
+            setBool('smartSearch', sched.smartSearch);
+            if(sched.agendarCitaFields) {
+                setBool('agendarCitaFields.requestEmail', sched.agendarCitaFields.requestEmail);
+                setBool('agendarCitaFields.requestMotivoDeCita', sched.agendarCitaFields.requestMotivoDeCita);
+            }
+            // Lists
             document.getElementById('appointmentTypesList').innerHTML = '';
+            if(sched.appointmentTypes) Object.keys(sched.appointmentTypes).forEach(k => addAppointmentType({key:k, ...sched.appointmentTypes[k]}));
             document.getElementById('doctorsList').innerHTML = '';
+            if(sched.doctors) Object.keys(sched.doctors).forEach(k => addDoctor({key:k, ...sched.doctors[k]}));
+            document.getElementById('outOfOfficeList').innerHTML = '';
+            if(sched.outOfOffice) sched.outOfOffice.forEach(evt => addOutOfOffice(evt));
 
-            if(data.calendars) {
-                setBool('smartSearch', data.calendars.smartSearch);
-                setVal('timeBetweenAppointments', data.calendars.timeBetweenAppointments);
+            // MEDIA
+            const med = data.media || {};
+            setBool('enableMediaSending', med.enableMediaSending);
+            setVal('assetLimit', med.assetLimit);
+            document.getElementById('mediaAssetsList').innerHTML = '';
+            if(med.mediaAssets) Object.keys(med.mediaAssets).forEach(k => addMediaAsset({key:k, ...med.mediaAssets[k]}));
 
-                if(data.calendars.appointment_types) {
-                    Object.keys(data.calendars.appointment_types).forEach(k => {
-                        addAppointmentType({ key: k, ...data.calendars.appointment_types[k] });
-                    });
-                }
-                if(data.calendars.doctors) {
-                    Object.keys(data.calendars.doctors).forEach(k => {
-                        addDoctor({ key: k, ...data.calendars.doctors[k] });
-                    });
-                }
+            // ROUTING
+            const route = data.customNotifications || {};
+            document.getElementById('routingList').innerHTML = '';
+            if(route.teamTransferRules) Object.keys(route.teamTransferRules).forEach(k => addRoutingRule({key:k, ...route.teamTransferRules[k]}));
+
+            // REMINDERS
+            const rem = data.reminders || {};
+            setBool('sendReminders', rem.sendReminders);
+            setBool('requireConfirmation', rem.requireConfirmation);
+            setVal('numberOfReminders', rem.numberOfReminders);
+            if(rem.reminder1) { setVal('reminder1.timing', rem.reminder1.timing); setVal('reminder1.templateName', rem.reminder1.templateName); }
+            if(rem.reminder2) { setVal('reminder2.timing', rem.reminder2.timing); setVal('reminder2.templateName', rem.reminder2.templateName); }
+
+            // TEMPLATES
+            document.getElementById('templatesList').innerHTML = '';
+            if(data.templates) Object.keys(data.templates).forEach(k => addTemplate({key:k, ...data.templates[k]}));
+
+            // TOKENS
+            const tok = data.tokens || {};
+            if(tok.googleCalendar) {
+                setVal('tokens.gc.accessToken', tok.googleCalendar.accessToken);
+                setVal('tokens.gc.refreshToken', tok.googleCalendar.refreshToken);
+                setVal('tokens.gc.expiresDatetime', tok.googleCalendar.expiresDatetime);
             }
-
-            // Reminders
-            if(data.recordatorios) {
-                setBool('recordatorios.sendReminders', data.recordatorios.sendReminders);
-                setBool('recordatorios.requireConfirmation', data.recordatorios.requireConfirmation);
-                setVal('recordatorios.number_of_reminders', data.recordatorios.number_of_reminders);
+            if(tok.whatsappCloudApi) {
+                setVal('tokens.wa.phoneNumberId', tok.whatsappCloudApi.phoneNumberId);
+                setVal('tokens.wa.wabaId', tok.whatsappCloudApi.wabaId);
+                setVal('tokens.wa.token', tok.whatsappCloudApi.token);
             }
         }
 
-        // --- FILE IO ---
         function saveConfigFile() {
-            try {
-                const data = getFormData();
-                const jsonStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const safeName = data.nombre ? data.nombre.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'config';
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${safeName}_config.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showToast('Configuration downloaded!');
-            } catch (e) {
-                console.error(e);
-                showToast('Error saving file.', true);
-            }
+            const data = getFormData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${data.assistantName || 'config'}_full.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            showToast('Saved successfully!');
         }
 
         function copyToClipboard() {
-            try {
-                const str = JSON.stringify(getFormData(), null, 2);
-                const ta = document.createElement("textarea");
-                ta.value = str;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                showToast('Copied to clipboard!');
-            } catch(e) { showToast('Copy failed', true); }
+            navigator.clipboard.writeText(JSON.stringify(getFormData(), null, 2));
+            showToast('Copied to clipboard!');
         }
 
         function loadConfigFile(input) {
             const file = input.files[0];
             if(!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    populateForm(JSON.parse(e.target.result));
-                    showToast('Loaded successfully!');
-                } catch(err) { showToast('Invalid JSON', true); }
-                input.value = '';
-            };
-            reader.readAsText(file);
+            const r = new FileReader();
+            r.onload = e => { populateForm(JSON.parse(e.target.result)); showToast('Loaded!'); input.value = ''; };
+            r.readAsText(file);
         }
     </script>
 </body>
