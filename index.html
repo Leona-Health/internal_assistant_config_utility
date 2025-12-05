@@ -109,7 +109,7 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-900">Assistant Configuration</h1>
-                <p class="text-slate-500 mt-1">Full Schema Generator (Asistentes, Scheduling, Media, Tokens)</p>
+                <p class="text-slate-500 mt-1">Full Schema Generator (Flat Structure)</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <input type="file" id="fileInput" accept=".json" class="hidden" onchange="loadConfigFile(this)">
@@ -132,9 +132,9 @@
                 <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-user-circle text-blue-500 mr-2"></i> Asistentes: Core Info</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div><label>Assistant Name</label><input type="text" id="assistantName" value="Vale"></div>
-                    <div><label>Assistant Title</label><input type="text" id="assistantNameTitle" value="la asistente"></div>
-                    <div><label>Personality</label><input type="text" id="assistantPersonality" value="amigable y formal"></div>
+                    <div><label>Assistant Name</label><input type="text" id="assistantName" value="Eleny"></div>
+                    <div><label>Assistant Title</label><input type="text" id="assistantNameTitle" value="Eleny, asistente virtual"></div>
+                    <div><label>Personality</label><input type="text" id="assistantPersonality" value="amable y profesional"></div>
                     <div>
                         <label>Assistant Type</label>
                         <select id="assistantType">
@@ -153,7 +153,7 @@
                 <div class="subsection-title">Doctor / Business Details</div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div><label>Doctor Name</label><input type="text" id="doctorName"></div>
-                    <div><label>Doctor Title</label><input type="text" id="doctorNameTitle" value="la doctora"></div>
+                    <div><label>Doctor Title</label><input type="text" id="doctorNameTitle" value="Dr."></div>
                     <div><label>Doctor Email</label><input type="email" id="doctorEmail"></div>
                     <div><label>Office Phone</label><input type="text" id="doctorOfficePhone"></div>
                     <div><label>Address</label><input type="text" id="doctorAddress"></div>
@@ -175,6 +175,7 @@
                             <option value="pediatrics">Pediatría</option>
                             <option value="psychiatry">Psiquiatría</option>
                             <option value="nutrition">Nutrición</option>
+                            <option value="cardiologia">Cardiología</option>
                         </select>
                     </div>
                     <div><label>Custom Specialty (Display)</label><input type="text" id="customSpecialty"></div>
@@ -194,7 +195,7 @@
                 <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-brain text-violet-500 mr-2"></i> RAG & Apologies</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div><label>Corpus / VectorStore ID</label><input type="text" id="ragConfig.corpusId" class="font-mono"></div>
+                    <div><label>VectorStore ID</label><input type="text" id="ragConfig.vectorStoreId" class="font-mono"></div>
                     <div>
                         <label>Search Mode</label>
                         <select id="ragConfig.mode">
@@ -207,6 +208,7 @@
 
                 <div class="subsection-title">Apology Settings (Enable Fallbacks)</div>
                 <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                    <!-- Helper to create toggle cards -->
                     <div class="p-4 bg-slate-50 rounded border text-center flex flex-col items-center gap-2">
                         <label class="mb-0">Image</label>
                         <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
@@ -258,7 +260,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 bg-slate-50 p-6 rounded">
                     <div><label>Time Between Appts (min)</label><input type="number" id="timeBetweenAppointments" value="0"></div>
-                    <div><label>Max Days Before Booking</label><input type="number" id="maxDaysBeforeBooking" value="30"></div>
+                    <div><label>Max Days Before Booking</label><input type="number" id="maxDaysBeforeBooking" value="60"></div>
                     <div><label>Min Appt Buffer (min)</label><input type="number" id="minAppointmentBuffer" value="60"></div>
                     <div>
                         <label>Preference</label>
@@ -268,6 +270,7 @@
                         </select>
                     </div>
                     <div class="md:col-span-2"><label>Other Calendar Link</label><input type="text" id="otherCalendarLink"></div>
+                    <div class="md:col-span-3"><label>Default Doctor ID</label><input type="text" id="defaultDoctorId" placeholder="dr_martinez"></div>
                     
                     <div class="flex items-center gap-3 mt-4">
                         <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
@@ -278,17 +281,17 @@
                     </div>
                     <div class="flex items-center gap-3 mt-4">
                         <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="agendarCitaFields.requestEmail" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="agendarCitaFields.requestEmail" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            <input type="checkbox" id="scheduleAppointmentFields.requestEmail" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="scheduleAppointmentFields.requestEmail" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                         </div>
-                        <label for="agendarCitaFields.requestEmail" class="cursor-pointer mb-0">Req. Email</label>
+                        <label for="scheduleAppointmentFields.requestEmail" class="cursor-pointer mb-0">Req. Email</label>
                     </div>
                     <div class="flex items-center gap-3 mt-4">
                         <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="agendarCitaFields.requestMotivoDeCita" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="agendarCitaFields.requestMotivoDeCita" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            <input type="checkbox" id="scheduleAppointmentFields.requestAppointmentReason" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="scheduleAppointmentFields.requestAppointmentReason" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                         </div>
-                        <label for="agendarCitaFields.requestMotivoDeCita" class="cursor-pointer mb-0">Req. Reason</label>
+                        <label for="scheduleAppointmentFields.requestAppointmentReason" class="cursor-pointer mb-0">Req. Reason</label>
                     </div>
                 </div>
 
@@ -332,7 +335,7 @@
                         </div>
                         <label for="enableMediaSending" class="cursor-pointer mb-0">Enable Sending</label>
                     </div>
-                    <div><label>Asset Limit</label><input type="number" id="assetLimit" value="5" class="w-20"></div>
+                    <div><label>Asset Limit</label><input type="number" id="assetLimit" value="10" class="w-20"></div>
                 </div>
 
                 <div class="flex justify-between items-center mb-2">
@@ -371,19 +374,19 @@
                         </div>
                         <label for="requireConfirmation" class="cursor-pointer mb-0">Req. Confirmation</label>
                     </div>
-                    <div><label>Count</label><input type="number" id="numberOfReminders" value="1" class="w-20"></div>
+                    <div><label>Count</label><input type="number" id="numberOfReminders" value="2" class="w-20"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-3 border rounded bg-slate-50">
                         <div class="text-xs font-bold uppercase mb-2 text-cyan-700">Reminder 1</div>
-                        <div><label>Timing (Days before)</label><input type="number" id="reminder1.timing" value="1"></div>
-                        <div><label>Template Name</label><input type="text" id="reminder1.templateName" value="base_reminder_1"></div>
+                        <div><label>Timing (Minutes)</label><input type="number" id="reminder1.timing" value="1440"></div>
+                        <div><label>Template Name</label><input type="text" id="reminder1.templateName" value="recordatorio_cita_24h"></div>
                     </div>
                     <div class="p-3 border rounded bg-slate-50">
                         <div class="text-xs font-bold uppercase mb-2 text-cyan-700">Reminder 2</div>
-                        <div><label>Timing (Days before)</label><input type="number" id="reminder2.timing" value="0"></div>
-                        <div><label>Template Name</label><input type="text" id="reminder2.templateName" value="base_reminder_2"></div>
+                        <div><label>Timing (Minutes)</label><input type="number" id="reminder2.timing" value="60"></div>
+                        <div><label>Template Name</label><input type="text" id="reminder2.templateName" value="recordatorio_cita_1h"></div>
                     </div>
                 </div>
             </div>
@@ -396,29 +399,6 @@
                     <button onclick="addTemplate()" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded">Add Template</button>
                 </div>
                 <div id="templatesList" class="space-y-2"></div>
-            </div>
-
-            <!-- 8. TOKENS -->
-            <div class="form-section section-tokens">
-                <h2 class="text-xl font-bold mb-4 text-slate-700"><i class="fas fa-key text-slate-500 mr-2"></i> Tokens & APIs</h2>
-                
-                <div class="mb-6">
-                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-2">Google Calendar</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div><label>Access Token</label><input type="text" id="tokens.gc.accessToken" class="font-mono text-xs"></div>
-                        <div><label>Refresh Token</label><input type="text" id="tokens.gc.refreshToken" class="font-mono text-xs"></div>
-                        <div><label>Expires</label><input type="text" id="tokens.gc.expiresDatetime" class="font-mono text-xs"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-2">WhatsApp Cloud API</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div><label>Phone Number ID</label><input type="text" id="tokens.wa.phoneNumberId" class="font-mono text-xs"></div>
-                        <div><label>WABA ID</label><input type="text" id="tokens.wa.wabaId" class="font-mono text-xs"></div>
-                        <div class="md:col-span-2"><label>Token</label><input type="text" id="tokens.wa.token" class="font-mono text-xs"></div>
-                    </div>
-                </div>
             </div>
 
         </form>
@@ -464,9 +444,7 @@
             typeCards.forEach(c => {
                 const k = c.querySelector('.appt-key').value;
                 const chk = (data?.appointmentTypes?.includes(k)) ? 'checked' : '';
-                const uniqueId = `doc_type_${id}_${k.replace(/\W/g,'')}`;
-                // Use mini-toggle structure from earlier version logic
-                 checks += `
+                checks += `
                     <label class="flex items-center space-x-2 cursor-pointer bg-slate-100 p-2 rounded hover:bg-slate-200 transition">
                         <div class="relative inline-block w-8 align-middle select-none">
                             <input type="checkbox" value="${k}" class="doc-types toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 appearance-none cursor-pointer top-0" ${chk} style="height:1rem; width:1rem;"/>
@@ -521,8 +499,8 @@
                 <i class="fas fa-times remove-btn" onclick="this.parentElement.remove()"></i>
                 <div class="flex-1"><label>Event Name</label><input type="text" class="ooo-name" value="${data?.oooEventName||''}"></div>
                 <div class="w-32"><label>Doctor ID</label><input type="text" class="ooo-doc" value="${data?.doctorId||''}"></div>
-                <div class="w-36"><label>Start</label><input type="datetime-local" class="ooo-start" value="${data?.oooEventStart||''}"></div>
-                <div class="w-36"><label>End</label><input type="datetime-local" class="ooo-end" value="${data?.oooEventEnd||''}"></div>
+                <div class="w-36"><label>Start</label><input type="datetime-local" class="ooo-start" value="${data?.oooEventStart?.replace(/(-0\d:00|Z)$/,'')||''}"></div>
+                <div class="w-36"><label>End</label><input type="datetime-local" class="ooo-end" value="${data?.oooEventEnd?.replace(/(-0\d:00|Z)$/,'')||''}"></div>
                 <input type="hidden" class="ooo-id" value="${data?.oooEventId || 'evt_'+Date.now()}">
             `;
             list.appendChild(div);
@@ -618,13 +596,16 @@
                 DAYS.forEach(day => {
                     const starts = c.querySelectorAll(`.doc-start[data-day="${day}"]`);
                     const ends = c.querySelectorAll(`.doc-end[data-day="${day}"]`);
-                    schedule[day] = Array.from(starts).map((s,i) => ({ start: s.value, end: ends[i].value }));
+                    // Filter empty slots for cleaner JSON
+                    const slots = Array.from(starts).map((s,i) => ({ start: s.value, end: ends[i].value })).filter(s => s.start && s.end);
+                    schedule[day] = slots;
                 });
                 const types = Array.from(c.querySelectorAll('.doc-types:checked')).map(cb => cb.value);
                 
                 doctors[c.querySelector('.doc-key').value] = {
-                    selectedCalendarId: c.querySelector('.doc-cal').value,
+                    name: "Unknown", // Schema has 'name' in doctor object, might need manual input or inference
                     appointmentTypes: types,
+                    selectedCalendarId: c.querySelector('.doc-cal').value,
                     schedule: schedule
                 };
             });
@@ -660,40 +641,37 @@
             const outOfOffice = [];
             document.querySelectorAll('.ooo-card').forEach(c => {
                 outOfOffice.push({
-                    oooEventId: c.querySelector('.ooo-id').value,
-                    oooEventName: c.querySelector('.ooo-name').value,
                     doctorId: c.querySelector('.ooo-doc').value,
-                    oooEventStart: c.querySelector('.ooo-start').value,
-                    oooEventEnd: c.querySelector('.ooo-end').value
+                    oooEventName: c.querySelector('.ooo-name').value,
+                    oooEventId: c.querySelector('.ooo-id').value,
+                    oooEventStart: c.querySelector('.ooo-start').value + ":00-06:00", // Basic formatting mock
+                    oooEventEnd: c.querySelector('.ooo-end').value + ":00-06:00"
                 });
             });
 
-            // Available Calendars (Tokens) - Simple passthrough from existing JSON usually, here placeholder
-            const availableCalendars = []; 
+            const availableCalendars = []; // Placeholder
 
             return {
-                // ASISTENTES COLLECTION
                 assistantName: val('assistantName'),
                 assistantNameTitle: val('assistantNameTitle'),
                 assistantPersonality: val('assistantPersonality'),
                 assistantType: val('assistantType'),
                 langgraphAssistantId: val('langgraphAssistantId'),
                 assistantRag: val('assistantRag'),
+                doctorAddress: val('doctorAddress'),
+                
+                directCommunication: {
+                    communicationMethod: val('directCommunication.communicationMethod'),
+                    communicationSituations: val('directCommunication.communicationSituations'),
+                    communicationTarget: val('directCommunication.communicationTarget'),
+                    communicationWhen: val('directCommunication.communicationWhen')
+                },
+
                 doctorName: val('doctorName'),
                 doctorNameTitle: val('doctorNameTitle'),
                 doctorEmail: val('doctorEmail'),
-                doctorOfficePhone: val('doctorOfficePhone'),
-                doctorAddress: val('doctorAddress'),
-                doctorTimezone: val('doctorTimezone'),
                 doctorSpecialty: val('doctorSpecialty'),
-                customSpecialty: val('customSpecialty'),
-                
-                directCommunication: {
-                    communicationTarget: val('directCommunication.communicationTarget'),
-                    communicationWhen: val('directCommunication.communicationWhen'),
-                    communicationMethod: val('directCommunication.communicationMethod'),
-                    communicationSituations: val('directCommunication.communicationSituations')
-                },
+                customSpecialty: val('customSpecialty') || null,
 
                 apologySettings: {
                     imageApology: bool('apologySettings.imageApology'),
@@ -705,72 +683,67 @@
                 },
 
                 ragConfig: {
-                    corpusId: val('ragConfig.corpusId'), // or vectorStoreId logic
-                    vectorStoreId: val('ragConfig.corpusId'),
+                    vectorStoreId: val('ragConfig.vectorStoreId'),
                     mode: val('ragConfig.mode'),
                     topK: parseInt(val('ragConfig.topK')) || 3
                 },
 
-                // SCHEDULING
-                scheduling: {
-                    appointmentTypes,
-                    doctors,
-                    smartSearch: bool('smartSearch'),
-                    timeBetweenAppointments: parseInt(val('timeBetweenAppointments')) || 0,
-                    maxDaysBeforeBooking: parseInt(val('maxDaysBeforeBooking')) || 30,
-                    minAppointmentBuffer: parseInt(val('minAppointmentBuffer')) || 60,
-                    appointmentSchedulingPreference: val('appointmentSchedulingPreference'),
-                    otherCalendarLink: val('otherCalendarLink'),
-                    agendarCitaFields: {
-                        requestEmail: bool('agendarCitaFields.requestEmail'),
-                        requestMotivoDeCita: bool('agendarCitaFields.requestMotivoDeCita')
-                    },
-                    outOfOffice
+                doctorOfficePhone: val('doctorOfficePhone'),
+                doctorTimezone: val('doctorTimezone'),
+
+                appointmentTypes,
+                doctors,
+                defaultDoctorId: val('defaultDoctorId'),
+
+                smartSearch: bool('smartSearch'),
+                timeBetweenAppointments: parseInt(val('timeBetweenAppointments')) || 0,
+                maxDaysBeforeBooking: parseInt(val('maxDaysBeforeBooking')) || 60,
+                minAppointmentBuffer: parseInt(val('minAppointmentBuffer')) || 60,
+                appointmentSchedulingPreference: val('appointmentSchedulingPreference'),
+                otherCalendarLink: val('otherCalendarLink') || null,
+                
+                scheduleAppointmentFields: {
+                    requestEmail: bool('scheduleAppointmentFields.requestEmail'),
+                    requestAppointmentReason: bool('scheduleAppointmentFields.requestAppointmentReason')
+                },
+                
+                outOfOffice,
+
+                enableMediaSending: bool('enableMediaSending'),
+                assetLimit: parseInt(val('assetLimit')) || 10,
+                mediaAssets,
+
+                teamTransferRules,
+
+                sendReminders: bool('sendReminders'),
+                requireConfirmation: bool('requireConfirmation'),
+                numberOfReminders: parseInt(val('numberOfReminders')) || 1,
+                reminder1: {
+                    timing: parseInt(val('reminder1.timing')) || 1440,
+                    templateName: val('reminder1.templateName')
+                },
+                reminder2: {
+                    timing: parseInt(val('reminder2.timing')) || 60,
+                    templateName: val('reminder2.templateName')
                 },
 
-                // MEDIA
-                media: {
-                    enableMediaSending: bool('enableMediaSending'),
-                    assetLimit: parseInt(val('assetLimit')) || 5,
-                    mediaAssets
-                },
-
-                // CUSTOM NOTIFICATIONS (Routing)
-                customNotifications: {
-                    teamTransferRules
-                },
-
-                // REMINDERS
-                reminders: {
-                    sendReminders: bool('sendReminders'),
-                    requireConfirmation: bool('requireConfirmation'),
-                    numberOfReminders: parseInt(val('numberOfReminders')) || 1,
-                    reminder1: {
-                        timing: parseInt(val('reminder1.timing')) || 0,
-                        templateName: val('reminder1.templateName')
-                    },
-                    reminder2: {
-                        timing: parseInt(val('reminder2.timing')) || 0,
-                        templateName: val('reminder2.templateName')
-                    }
-                },
-
-                // TEMPLATES
                 templates,
 
-                // TOKENS
-                tokens: {
-                    googleCalendar: {
-                        accessToken: val('tokens.gc.accessToken'),
-                        refreshToken: val('tokens.gc.refreshToken'),
-                        expiresDatetime: val('tokens.gc.expiresDatetime'),
-                        availableCalendars 
-                    },
-                    whatsappCloudApi: {
-                        phoneNumberId: val('tokens.wa.phoneNumberId'),
-                        wabaId: val('tokens.wa.wabaId'),
-                        token: val('tokens.wa.token')
-                    }
+                googleCalendar: {
+                    accessToken: "",
+                    refreshToken: "",
+                    expiresDatetime: "",
+                    updatedDatetime: "",
+                    availableCalendars: []
+                },
+
+                whatsappCloudApi: {
+                    esResponseCode: "",
+                    status: "",
+                    flowType: "",
+                    wabaId: "",
+                    phoneNumberId: "",
+                    token: ""
                 }
             };
         }
@@ -779,18 +752,18 @@
             const setVal = (id, v) => { if(document.getElementById(id)) document.getElementById(id).value = v || ''; };
             const setBool = (id, v) => { if(document.getElementById(id)) document.getElementById(id).checked = !!v; };
 
-            // ASISTENTES
+            // Core
             setVal('assistantName', data.assistantName);
             setVal('assistantNameTitle', data.assistantNameTitle);
             setVal('assistantPersonality', data.assistantPersonality);
             setVal('assistantType', data.assistantType);
             setVal('langgraphAssistantId', data.langgraphAssistantId);
             setVal('assistantRag', data.assistantRag);
+            setVal('doctorAddress', data.doctorAddress);
             setVal('doctorName', data.doctorName);
             setVal('doctorNameTitle', data.doctorNameTitle);
             setVal('doctorEmail', data.doctorEmail);
             setVal('doctorOfficePhone', data.doctorOfficePhone);
-            setVal('doctorAddress', data.doctorAddress);
             setVal('doctorTimezone', data.doctorTimezone);
             setVal('doctorSpecialty', data.doctorSpecialty);
             setVal('customSpecialty', data.customSpecialty);
@@ -805,67 +778,53 @@
                 Object.keys(data.apologySettings).forEach(k => setBool(`apologySettings.${k}`, data.apologySettings[k]));
             }
             if(data.ragConfig) {
-                setVal('ragConfig.corpusId', data.ragConfig.corpusId || data.ragConfig.vectorStoreId);
+                setVal('ragConfig.vectorStoreId', data.ragConfig.vectorStoreId);
                 setVal('ragConfig.mode', data.ragConfig.mode);
                 setVal('ragConfig.topK', data.ragConfig.topK);
             }
 
-            // SCHEDULING
-            const sched = data.scheduling || {};
-            setVal('timeBetweenAppointments', sched.timeBetweenAppointments);
-            setVal('maxDaysBeforeBooking', sched.maxDaysBeforeBooking);
-            setVal('minAppointmentBuffer', sched.minAppointmentBuffer);
-            setVal('appointmentSchedulingPreference', sched.appointmentSchedulingPreference);
-            setVal('otherCalendarLink', sched.otherCalendarLink);
-            setBool('smartSearch', sched.smartSearch);
-            if(sched.agendarCitaFields) {
-                setBool('agendarCitaFields.requestEmail', sched.agendarCitaFields.requestEmail);
-                setBool('agendarCitaFields.requestMotivoDeCita', sched.agendarCitaFields.requestMotivoDeCita);
+            // Scheduling
+            setVal('timeBetweenAppointments', data.timeBetweenAppointments);
+            setVal('maxDaysBeforeBooking', data.maxDaysBeforeBooking);
+            setVal('minAppointmentBuffer', data.minAppointmentBuffer);
+            setVal('appointmentSchedulingPreference', data.appointmentSchedulingPreference);
+            setVal('otherCalendarLink', data.otherCalendarLink);
+            setVal('defaultDoctorId', data.defaultDoctorId);
+            setBool('smartSearch', data.smartSearch);
+            
+            if(data.scheduleAppointmentFields) {
+                setBool('scheduleAppointmentFields.requestEmail', data.scheduleAppointmentFields.requestEmail);
+                setBool('scheduleAppointmentFields.requestAppointmentReason', data.scheduleAppointmentFields.requestAppointmentReason);
             }
+
             // Lists
             document.getElementById('appointmentTypesList').innerHTML = '';
-            if(sched.appointmentTypes) Object.keys(sched.appointmentTypes).forEach(k => addAppointmentType({key:k, ...sched.appointmentTypes[k]}));
+            if(data.appointmentTypes) Object.keys(data.appointmentTypes).forEach(k => addAppointmentType({key:k, ...data.appointmentTypes[k]}));
             document.getElementById('doctorsList').innerHTML = '';
-            if(sched.doctors) Object.keys(sched.doctors).forEach(k => addDoctor({key:k, ...sched.doctors[k]}));
+            if(data.doctors) Object.keys(data.doctors).forEach(k => addDoctor({key:k, ...data.doctors[k]}));
             document.getElementById('outOfOfficeList').innerHTML = '';
-            if(sched.outOfOffice) sched.outOfOffice.forEach(evt => addOutOfOffice(evt));
+            if(data.outOfOffice) data.outOfOffice.forEach(evt => addOutOfOffice(evt));
 
-            // MEDIA
-            const med = data.media || {};
-            setBool('enableMediaSending', med.enableMediaSending);
-            setVal('assetLimit', med.assetLimit);
+            // Media
+            setBool('enableMediaSending', data.enableMediaSending);
+            setVal('assetLimit', data.assetLimit);
             document.getElementById('mediaAssetsList').innerHTML = '';
-            if(med.mediaAssets) Object.keys(med.mediaAssets).forEach(k => addMediaAsset({key:k, ...med.mediaAssets[k]}));
+            if(data.mediaAssets) Object.keys(data.mediaAssets).forEach(k => addMediaAsset({key:k, ...data.mediaAssets[k]}));
 
-            // ROUTING
-            const route = data.customNotifications || {};
+            // Routing
             document.getElementById('routingList').innerHTML = '';
-            if(route.teamTransferRules) Object.keys(route.teamTransferRules).forEach(k => addRoutingRule({key:k, ...route.teamTransferRules[k]}));
+            if(data.teamTransferRules) Object.keys(data.teamTransferRules).forEach(k => addRoutingRule({key:k, ...data.teamTransferRules[k]}));
 
-            // REMINDERS
-            const rem = data.reminders || {};
-            setBool('sendReminders', rem.sendReminders);
-            setBool('requireConfirmation', rem.requireConfirmation);
-            setVal('numberOfReminders', rem.numberOfReminders);
-            if(rem.reminder1) { setVal('reminder1.timing', rem.reminder1.timing); setVal('reminder1.templateName', rem.reminder1.templateName); }
-            if(rem.reminder2) { setVal('reminder2.timing', rem.reminder2.timing); setVal('reminder2.templateName', rem.reminder2.templateName); }
+            // Reminders
+            setBool('sendReminders', data.sendReminders);
+            setBool('requireConfirmation', data.requireConfirmation);
+            setVal('numberOfReminders', data.numberOfReminders);
+            if(data.reminder1) { setVal('reminder1.timing', data.reminder1.timing); setVal('reminder1.templateName', data.reminder1.templateName); }
+            if(data.reminder2) { setVal('reminder2.timing', data.reminder2.timing); setVal('reminder2.templateName', data.reminder2.templateName); }
 
-            // TEMPLATES
+            // Templates
             document.getElementById('templatesList').innerHTML = '';
             if(data.templates) Object.keys(data.templates).forEach(k => addTemplate({key:k, ...data.templates[k]}));
-
-            // TOKENS
-            const tok = data.tokens || {};
-            if(tok.googleCalendar) {
-                setVal('tokens.gc.accessToken', tok.googleCalendar.accessToken);
-                setVal('tokens.gc.refreshToken', tok.googleCalendar.refreshToken);
-                setVal('tokens.gc.expiresDatetime', tok.googleCalendar.expiresDatetime);
-            }
-            if(tok.whatsappCloudApi) {
-                setVal('tokens.wa.phoneNumberId', tok.whatsappCloudApi.phoneNumberId);
-                setVal('tokens.wa.wabaId', tok.whatsappCloudApi.wabaId);
-                setVal('tokens.wa.token', tok.whatsappCloudApi.token);
-            }
         }
 
         function saveConfigFile() {
@@ -874,7 +833,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${data.assistantName || 'config'}_full.json`;
+            a.download = `${data.assistantName || 'config'}_flat.json`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
             showToast('Saved successfully!');
         }
